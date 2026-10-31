@@ -96,12 +96,13 @@ if (outPath) {
 }
 
 const client = new pg.Client({
-  host: `db.${dbHost}.supabase.co`,
+  host: "aws-0-us-east-1.pooler.supabase.com",
   port: 5432,
-  user: "postgres",
+  user: `postgres.${dbHost}`,
   password,
   database: "postgres",
   ssl: { rejectUnauthorized: false },
+  connectionTimeoutMillis: 8000,
 });
 
 await client.connect();

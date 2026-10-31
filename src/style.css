@@ -2203,3 +2203,28 @@ a.tag:hover { color: var(--gold-bright); border-color: rgba(216, 185, 124, 0.35)
   .signin-row .btn { width: 100%; }
   .signin-providers { grid-template-columns: 1fr; }
 }
+
+/* ── nav compactness for the account era ────────────────────────────────── */
+@media (max-width: 1180px) {
+  .nav-inner { gap: 20px; }
+  .nav-actions .btn-primary { padding: 0 14px; }
+}
+@media (max-width: 1080px) {
+  .nav-inner { gap: 14px; }
+  .brand-mark { width: 26px; height: 26px; }
+}
+@media (max-width: 560px) {
+  .nav-inner { gap: 8px; }
+  .nav-actions { gap: 6px; }
+  .acct { display: none; }
+  .nav-actions .btn-ghost.btn-sm { display: none; }
+}
+
+.ticker { overflow: clip; }
+@media (max-width: 1120px) {
+  .nav-actions > .btn-primary { display: none; }
+}
+
+@media (max-width: 1120px) and (min-width: 901px) {
+  .btn-nav-publish { display: none !important; }
+}

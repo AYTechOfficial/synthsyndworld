@@ -278,7 +278,7 @@ export default function App() {
             </button>
             <PumpButton size="sm" label="Buy $SSDY" mobileLabel="$SSDY" />
             <AccountMenu location={location} />
-            <Link to="/submit" className="btn btn-primary btn-sm">
+            <Link to="/submit" className="btn btn-primary btn-sm btn-nav-publish">
               <Icon name="plus" size={13} strokeWidth={2} /> Publish
             </Link>
             <button type="button" className="burger" onClick={() => setMenuOpen((v) => !v)} aria-label="Menu" aria-expanded={menuOpen}>
@@ -306,7 +306,8 @@ export default function App() {
               <Link to="/docs">Documentation <span>How it works</span></Link>
             </div>
             <div className="mm-actions">
-              <Link to="/submit" className="btn btn-primary btn-sm"><Icon name="plus" size={13} /> Publish a listing</Link>
+              <Link to="/signin" className="btn btn-ghost btn-sm"><Icon name="users" size={13} /> Sign in</Link>
+              <Link to="/submit" className="btn btn-primary btn-sm btn-nav-publish"><Icon name="plus" size={13} /> Publish a listing</Link>
               <PumpButton size="sm" label="Buy $SSDY on pump.fun" />
             </div>
           </div>

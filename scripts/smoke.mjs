@@ -69,8 +69,9 @@ async function newPage(width, height) {
   await page.waitForTimeout(650);
   const filtered = await page.$$eval(".seg-btn.active", (els) => els[0]?.textContent || "");
   const count = await page.locator(".grid .card").count();
-  const toolCount = await page.evaluate(async () => (await (await fetch("/api/stats")).json()).categories.tool);
-  note(filtered.includes("Tools") && count === toolCount, `discover filters to tools (${count} cards)`);
+  const segText = await page.locator(".seg-btn", { hasText: "Tools" }).innerText();
+  const toolCount = Number((segText.match(/(\d+)/) || [])[1] || 0);
+  note(filtered.includes("Tools") && count === toolCount && toolCount > 0, `discover filters to tools (${count} cards)`);
 
   await page.goto(BASE + "/run/promptforge", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Run agent" }).click();

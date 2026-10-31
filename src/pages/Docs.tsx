@@ -92,13 +92,15 @@ export default function Docs() {
             <li><b>Reference</b> — prompts and skills that are meant to be copied into your own model session. They expose no hosted runtime by design.</li>
           </ul>
           <p>
-            AI runs are real model calls. The response header credits the model that actually answered — never a provider, endpoint or key.
+            AI-run listings stay explicit about their runtime instead of faking it.
           </p>
 
-          <h2 id="models">Live models</h2>
+          <h2 id="models">AI agents</h2>
           <p>
-            Every AI agent is bound to the model best suited to its job. A primary model handles the run; if it is unavailable, the request
-            falls through to a selected fallback. The marketplace shows only the model that answered.
+            Six AI agents are curated as documented prompts and playbooks with a model task profile. Executing them against a live model
+            needs a server-side key, which a static SPA deliberately does not ship — the runners on this build (all nine) are deterministic
+            and execute in the browser. Reviewers who run their own Supabase + Vercel copy can wire a model provider of their choice behind
+            the same listings.
           </p>
           {models.length > 0 ? (
             <div className="model-table" role="table" aria-label="Agent model routing">
@@ -121,7 +123,7 @@ export default function Docs() {
 
           <h2 id="match">Match engine</h2>
           <p>
-            The match room turns one brief into a ranked stack. It is deterministic, explainable and runs inside the Worker in a few
+            The match room turns one brief into a ranked stack. It is deterministic, explainable and runs in the browser in a few
             milliseconds — no model key, no hidden model, no popularity vote. The same brief, budget and priority always produce the
             same verdict, which is why a shared link replays exactly what you saw.
           </p>
@@ -149,37 +151,29 @@ export default function Docs() {
             changes the verdict instantly, and the URL carries the finalists and weights so a shortlist is shareable.
           </p>
 
-          <h2 id="api">API reference</h2>
-          <p>All endpoints are same-origin JSON. Writes are rejected from foreign origins.</p>
-          <div className="endpoint"><span className="method method-get">GET</span><code>/api/items</code><span className="edesc">list · q, category, tag, sort, limit</span></div>
-          <div className="endpoint"><span className="method method-get">GET</span><code>/api/items/:slug</code><span className="edesc">detail + reviews + related</span></div>
-          <div className="endpoint"><span className="method method-post">POST</span><code>/api/items</code><span className="edesc">publish a listing</span></div>
-          <div className="endpoint"><span className="method method-post">POST</span><code>/api/items/:slug/reviews</code><span className="edesc">add a review (1–5)</span></div>
-          <div className="endpoint"><span className="method method-post">POST</span><code>/api/items/:slug/install</code><span className="edesc">increment the install counter</span></div>
-          <div className="endpoint"><span className="method method-post">POST</span><code>/api/run/:slug</code><span className="edesc">execute a runnable listing</span></div>
-          <div className="endpoint"><span className="method method-post">POST</span><code>/api/match</code><span className="edesc">score a brief · q, budget, priority — records the mission</span></div>
-          <div className="endpoint"><span className="method method-get">GET</span><code>/api/match</code><span className="edesc">replay a verdict without recording it</span></div>
-          <div className="endpoint"><span className="method method-get">GET</span><code>/api/match/recent</code><span className="edesc">latest six missions and their top winner</span></div>
-          <div className="endpoint"><span className="method method-get">GET</span><code>/api/compare</code><span className="edesc">up to four slugs + w_* weights</span></div>
-          <div className="endpoint"><span className="method method-get">GET</span><code>/api/models</code><span className="edesc">agent → live model routing</span></div>
-          <div className="endpoint"><span className="method method-get">GET</span><code>/api/stats</code><span className="edesc">live totals and category counts</span></div>
-          <div className="endpoint"><span className="method method-get">GET</span><code>/api/events</code><span className="edesc">latest marketplace activity</span></div>
-          <div className="endpoint"><span className="method method-get">GET</span><code>/api/health</code><span className="edesc">liveness probe</span></div>
+          <h2 id="api">Data model and RLS</h2>
+          <p>
+            There is no application server. The SPA talks to Supabase Postgres directly through <code>supabase-js</code>; the anon key is
+            public by design, and row-level security on every table is the protection. Writes pass policy checks that would reject
+            anonymous readers.
+          </p>
+          <div className="endpoint"><span className="method method-get">SELECT</span><code>published_items, reviews, events, metrics, matches</code><span className="edesc">public read</span></div>
+          <div className="endpoint"><span className="method method-post">INSERT</span><code>published_items, reviews</code><span className="edesc">authenticated accounts only</span></div>
+          <div className="endpoint"><span className="method method-post">INSERT</span><code>matches</code><span className="edesc">mission history, openly insertable</span></div>
+          <div className="endpoint"><span className="method method-post">RPC</span><code>bump_metric(slug, field)</code><span className="edesc">the only counter path — security definer</span></div>
+          <div className="endpoint"><span className="method method-get">ALL</span><code>stacks</code><span className="edesc">owner only, keyed by auth.users.id</span></div>
+          <p>
+            The catalog itself ships in the app bundle (<code>src/lib/catalog.ts</code>) so the curated listings are code-reviewed and
+            versioned with the project. Every dynamic read joins catalog rows with Postgres rows in memory, and mutations invalidate the
+            snapshot immediately.
+          </p>
 
-          <h3>Example: run an agent</h3>
-          <div className="codeblock">
-            <div className="code-head"><span className="dots"><i /><i /><i /></span><span>curl</span></div>
-            <pre className="code-body">{`curl -X POST /api/run/promptforge \\
-  -H 'content-type: application/json' \\
-  -d '{"values":{"raw":"an agent that reviews pull requests for security issues"}}'
-
-# => {
-#   "mode": "deterministic",
-#   "out": "You are a senior software engineer…",
-#   "ms": 3,
-#   "runs": 9211
-# }`}</pre>
-          </div>
+          <h3>How a review is kept honest</h3>
+          <ul>
+            <li><b>Authenticated insert</b> with rating 1–5 and 5–600 characters, enforced both by the policy and the check constraints.</li>
+            <li><b>Author attribution</b> comes from the account handle, not from an arbitrary input.</li>
+            <li><b>Averages compute live</b> from rows — nothing is cached in a counter you could forge.</li>
+          </ul>
 
           <h2 id="publishing">Publishing guide</h2>
           <p>Publishing takes about two minutes. The form validates name, tagline and body length, then writes a versioned row to D1.</p>
@@ -197,33 +191,33 @@ export default function Docs() {
 
           <h2 id="architecture">Architecture</h2>
           <p>
-            A single Cloudflare Worker serves both the API and the compiled React SPA. Catalog data lives in D1, seeded idempotently on first
-            request. The frontend is React + React Router with no runtime UI framework — the design system is hand-written CSS.
+            A static React/Vite SPA hosted on Vercel; Supabase provides Postgres and Auth; the match engine, runners and scoring all
+            execute client-side. The design system is hand-written CSS with a custom FX layer.
           </p>
           <ul>
-            <li><b>Worker</b> — Hono routes under <code>/api/*</code>, then a static-asset fallback so SPA routes deep-link correctly.</li>
-            <li><b>Database</b> — D1 tables: <code>items</code>, <code>reviews</code>, <code>events</code>, <code>usage</code>, <code>matches</code>, <code>settings</code>. All queries are parameterized.</li>
-            <li><b>Match engine</b> — <code>server/match.ts</code> plus per-listing profiles in <code>server/profiles.ts</code>. Pure functions: same input, same verdict.</li>
-            <li><b>Runners</b> — deterministic functions run inside the Worker; AI runs are routed to task-matched live models with selected fallbacks, timeout and daily quota.</li>
-            <li><b>Security</b> — same-origin write checks, input length caps, no key material in the browser, no secrets in listings.</li>
+            <li><b>SPA</b> — React + React Router, static on Vercel with an /index.html rewrite. No server code at all.</li>
+            <li><b>Database</b> — Supabase Postgres with explicit RLS policies on <code>published_items</code>, <code>reviews</code>, <code>events</code>, <code>metrics</code>, <code>matches</code>, <code>stacks</code>. Counters move only through <code>bump_metric</code>.</li>
+            <li><b>Auth</b> — Supabase Auth: magic link through the official client, PKCE flow; GitHub and Google OAuth can be enabled in the dashboard.</li>
+            <li><b>Match engine</b> — <code>src/lib/match.ts</code> plus per-listing profiles in <code>src/lib/profiles.ts</code>. Pure functions: same input, same verdict.</li>
+            <li><b>Security</b> — RLS first; inputs validated on the client and constrained at the table level; no secrets in the client and none in listings.</li>
           </ul>
 
-          <h2 id="local">Run it locally</h2>
+          <h2 id="local">Run it locally and ship it</h2>
           <div className="codeblock">
             <div className="code-head"><span className="dots"><i /><i /><i /></span><span>terminal</span></div>
             <pre className="code-body">{`npm install
-npm run build
-npx wrangler dev --port 8787
+cp .env.example .env   # fill VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
+npm run dev            # http://127.0.0.1:8787
 
-# open http://localhost:8787
-# D1 is created and seeded automatically on first request`}</pre>
+# one-time database setup: paste supabase/setup.sql into the
+# Supabase SQL editor (idempotent), or:
+SUPABASE_DB_PASSWORD=... node scripts/apply-schema.mjs`}</pre>
           </div>
           <p>
-            Live AI runs dispatch to OpenAI-compatible endpoints that you configure in the Worker environment using numbered slots —
-            <code>MODEL_ENDPOINT_1_URL</code>, <code>MODEL_ENDPOINT_1_KEY</code> and <code>MODEL_ENDPOINT_1_MODELS</code>, up to six endpoints.
-            Slot 1 is treated as the strongest general endpoint and later slots serve as fallbacks. Add the same names in
-            <b>Sites → Secrets</b> for a deployed build. Endpoint URLs and keys are read server-side only and never shipped to the browser.
-            Everything else works without configuration.
+            Paste the same two public variables into Vercel's environment settings and deploy — <code>vercel.json</code> already describes
+            the build. In Supabase → Authentication, add the deployed origin to the redirect allow-list so magic links come back to it.
+            Without any Supabase values the catalog, match room, compare arena, studio and all nine runners still run; sign-in, publishing,
+            reviews and stack sync degrade honestly.
           </p>
 
           <h2 id="roadmap">Roadmap</h2>

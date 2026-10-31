@@ -15,24 +15,24 @@ A working marketplace for AI agents, tools, prompts and skills — plus a determ
 ✅ Studio: reorder, replace, re-price, export a JSON blueprint or Markdown brief, share the stack
 
 ✅ 28 curated listings · search, category/tag filters, 4 sort modes
-✅ ⌘K command palette — listings, pages and actions from any screen
-✅ 8 runners executing real logic in the Worker — no key, no cost
-✅ 6 AI agents on live models — credited to the model only, never a provider
-✅ Real publishing · reviews · installs · live activity ticker on D1
-✅ Full docs + API — only what's actually implemented
+✅ Real accounts — magic-link sign-in, synced stacks, attributed reviews, RLS on every table
+✅ 9 deterministic runtimes executing real logic in the browser — no key, no cost
+✅ Real publishing · reviews · installs · live activity ticker on Postgres (Supabase + RLS)
+✅ Deploy in one click — static SPA on Vercel, zero servers, full Supabase schema included
+✅ Full docs + public GitHub repo — only what's actually implemented
 ✅ $SSDY button in nav, hero, token band, footer & palette → one official pump.fun page, contract copyable, no price claims
 🎨 Hand-built obsidian & champagne design system — no UI kit, responsive to 360px
 🎬 4:23 narrated marketplace walkthrough + 72s decision-layer walkthrough
 
 Every counter is a database row. No mocks, no canned AI, no hype.
 
-`npm install && npm run build && npx wrangler dev --port 8787`
+`npm install && npm run dev` (Vercel-included: vercel.json set, just add Supabase env)
 
 ---
 
 ## Medium (~120 words, no emoji)
 
-**Synthsynd World — the agent bazaar, built for real.** A working marketplace for AI agents, tools, prompts and skills: 28 curated listings with search, filters and four sort modes; full listing pages with real prompts, portable manifests, ratings and reviews; a ⌘K command palette; nine deterministic runners that execute in the Worker with no key; six AI agents answered by live task-matched models with model-only attribution; and a publish flow that writes a real versioned listing and appears in the catalog instantly. The $SSDY token has one official pump.fun call-to-action in the nav, hero, token band, footer and palette, with the contract copyable and no price claims. One Worker, D1, no mocks. The narrated marketplace walkthrough and the 72-second decision-layer walkthrough show every claim on the live build.
+**Synthsynd World — the agent bazaar, built for real.** A working marketplace for AI agents, tools, prompts and skills: 28 curated listings with search, filters and four sort modes; full listing pages with real prompts, portable manifests, attributed ratings and reviews; a ⌘K command palette; nine deterministic runners with no key; real accounts with magic links and owner-scoped stacks; and a deterministic match engine that names a winner per role with margins, budget swaps and a printed weighting table. Static SPA on Vercel backed by Supabase Postgres with row-level security — no servers, no secrets in the client. The $SSDY token keeps one official pump.fun link with a copyable contract and no price claims. The narrated marketplace walkthrough and the 72-second decision-layer walkthrough show every claim on the live build.
 
 ---
 
@@ -50,14 +50,15 @@ A curated catalog of 28 listings across four disciplines — agents, tools, prom
 
 Prompt Forge (idea → structured brief), JSON → Schema (infers draft-07, merges array shapes, detects formats), Markdown Grid (CSV/TSV → padded pipe-safe tables), Regex Lab (matches, capture groups, trap warnings), Text X-Ray (word/sentence stats, Flesch ease, reading time), Template Foundry (fills `{{slots}}`, reports missing/unused/duplicate keys), Prompt Cost Oracle (token and monthly estimates across four models) and a Degen Due Diligence checklist (educational, explicitly not advice). They execute inside the Worker in milliseconds — instant, private, free, no rate limit.
 
-**Six live AI agents, credited honestly**
+**Six AI agents, still curated**
 
-Deep Research, Code Review, Product Spec, Support Triage, SQL Sensei and Synth Muse run on real hosted models. The answer appears in a console and the header credits only the model that produced it — never a provider, an endpoint or a key. No local model, no canned responses, no fake fallback: if no model is reachable, the run fails with a plain message instead of pretending.
+Deep Research, Code Review, Product Spec, Support Triage, SQL Sensei and Synth Muse stay in the catalog as documented, real prompts and playbooks. Their live-model execution needs a server-side key, which a static SPA deliberately does not ship; the listing pages and the product are explicit about that instead of faking a run.
 
 **The parts beyond the brief**
 
-- **Real model routing.** Each agent asks for a capability profile — long-context, code, data, triage, general, creative — and the runtime matches the most specialized model available, falls through fallbacks, handles slow reasoning models in direct-answer mode, and enforces a 40-second timeout plus a per-IP daily cap.
-- **Bring your own endpoints.** Six environment slots for any OpenAI-compatible API. URLs and credentials never leave the Worker and never appear in a response.
+- **Real accounts and Postgres.** Supabase Auth (magic links, PKCE) with row-level security everywhere: public reads, authenticated publishes and reviews, owner-only stacks, counters only through a granted RPC. The anon key is public by design; the database decides, no server in between.
+- **A deterministic decision layer.** The match engine is plain TypeScript over the catalog — six factors, printed weights, runner-up margins, budget swaps, coverage gaps. Every verdict is explainable and replayable, no AI in the loop.
+- **Zero-server deploy.** Vite static SPA on Vercel plus a one-paste Supabase schema. Reviewers can deploy their own copy in minutes.
 - **A real command palette.** ⌘/Ctrl+K searches listings, pages and actions at once, including the token action.
 - **A live activity ticker.** Publishes, installs and reviews scroll across the home page and refresh on an interval.
 - **The $SSDY integration, done honestly.** One canonical CTA in navigation, hero, token band, footer, mobile menu and palette — all opening the same official pump.fun page. Contract copy plus DexScreener, Solscan and X links, and a volatility disclaimer. No price or tokenomics claims, no mirrors.
@@ -69,4 +70,4 @@ Deep Research, Code Review, Product Spec, Support Triage, SQL Sensei and Synth M
 
 Accounts, semantic search, version diffs and a moderation queue are not shipped; each is on the roadmap with a reason. An honest v1 beats four half-built features.
 
-`npm install && npm run build && npx wrangler dev --port 8787` — catalog, search, publishing, reviews and all nine runners work with zero config and zero keys.
+`npm install && npm run dev` (Vercel-included: vercel.json set, just add Supabase env) — catalog, search, publishing, reviews and all nine runners work with zero config and zero keys.
