@@ -66,25 +66,45 @@ export function useSession(): AccountState {
   return value;
 }
 
-export async function sendMagicLink(email: string) {
-  if (!supabase) throw new Error("Database not connected.");
+export function validateEmail(email: string): string {
   const clean = email.trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(clean)) throw new Error("That email does not look right.");
-  const { error } = await supabase.auth.signInWithOtp({
-    email: clean,
-    options: { emailRedirectTo: window.location.origin },
-  });
-  if (error) throw new Error(error.message);
-  return { sent: true };
+  return clean;
 }
 
-export async function signInWithProvider(provider: "github" | "google") {
+export function validatePassword(password: string): string {
+  if (password.length < 8) throw new Error("Password must be at least 8 characters.");
+  if (password.length > 72) throw new Error("Password is too long.");
+  return password;
+}
+
+export async function signInPassword(email: string, password: string) {
   if (!supabase) throw new Error("Database not connected.");
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider,
-    options: { redirectTo: window.location.origin },
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: validateEmail(email),
+    password: validatePassword(password),
   });
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (/invalid login credentials/i.test(error.message)) throw new Error("Wrong email or password.");
+    if (/email not confirmed/i.test(error.message)) throw new Error("Confirm your email first — check your inbox.");
+    throw new Error(error.message);
+  }
+  return data;
+}
+
+export async function signUpPassword(email: string, password: string) {
+  if (!supabase) throw new Error("Database not connected.");
+  const { data, error } = await supabase.auth.signUp({
+    email: validateEmail(email),
+    password: validatePassword(password),
+  });
+  if (error) {
+    if (/already registered/i.test(error.message)) throw new Error("That email already has an account — sign in instead.");
+    throw new Error(error.message);
+  }
+  // When email confirmation is enabled in Supabase, signUp succeeds but no
+  // session is issued until the user clicks the confirm link.
+  return data;
 }
 
 export async function signOut() {

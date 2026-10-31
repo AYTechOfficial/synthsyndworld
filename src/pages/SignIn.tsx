@@ -1,15 +1,22 @@
 import { useState, type FormEvent } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Icon } from "../components/ui";
-import { sendMagicLink, signInWithProvider, signOut, useSession } from "../lib/account";
+import { signInPassword, signOut, signUpPassword, useSession } from "../lib/account";
 import { toast } from "../toast";
+
+type Mode = "in" | "up";
 
 export default function SignIn() {
   const session = useSession();
+  const navigate = useNavigate();
+  const [mode, setMode] = useState<Mode>("in");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [created, setCreated] = useState(false);
 
   if (session.ready && session.user) {
     return (
@@ -17,7 +24,7 @@ export default function SignIn() {
         <div className="signin-shell">
           <span className="kicker">You are signed in</span>
           <h1>{session.user.name}.</h1>
-          <p className="match-sub">Signed in as {session.user.email}. Your stacks sync to this account.</p>
+          <p className="match-sub">Signed in as {session.user.email}. Your stacks, published listings and reviews follow this account.</p>
           <div className="signin-actions">
             <Link to="/studio" className="btn btn-primary btn-lg">Open the studio <Icon name="arrow" size={14} /></Link>
             <button type="button" className="btn btn-ghost btn-lg" onClick={() => signOut().then(() => toast("Signed out"))}>Sign out</button>
@@ -29,23 +36,25 @@ export default function SignIn() {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    setBusy(true);
     setError("");
+    if (mode === "up" && password !== confirm) {
+      setError("The passwords do not match.");
+      return;
+    }
+    setBusy(true);
     try {
-      await sendMagicLink(email);
-      setSent(true);
+      if (mode === "in") {
+        await signInPassword(email, password);
+        toast("Welcome back");
+        navigate("/studio");
+      } else {
+        await signUpPassword(email, password);
+        setCreated(true);
+      }
     } catch (err: any) {
-      setError(err?.message || "Could not send the link.");
+      setError(err?.message || "Something refused that attempt.");
     } finally {
       setBusy(false);
-    }
-  };
-
-  const provider = async (name: "github" | "google") => {
-    try {
-      await signInWithProvider(name);
-    } catch (err: any) {
-      toast(err?.message || `${name} sign-in is not enabled for this project yet`);
     }
   };
 
@@ -55,68 +64,109 @@ export default function SignIn() {
         <span className="kicker">Accounts</span>
         <h1>Your stacks, <em>everywhere.</em></h1>
         <p className="match-sub">
-          Sign in once and the match room, the studio, your published listings and your reviews follow
-          you across devices. Everything else in the bazaar stays open without an account.
+          One account for the studio, your published listings and your reviews — synced across devices.
+          Everything else in the bazaar stays open without one.
         </p>
 
         {!session.enabled && (
           <div className="signin-note warn" role="note">
-            Supabase is not configured in this build (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY). The
-            catalog, match room, compare arena and all nine runners work without it; signing in is
-            currently unavailable.
+            Supabase is not configured in this build. The catalog, match room, compare arena and all nine
+            runners work without it; signing in is currently unavailable.
           </div>
         )}
 
-        <section className="signin-card" aria-label="Sign in">
-          {sent ? (
+        <section className="signin-card" aria-label={mode === "in" ? "Sign in" : "Create an account"}>
+          {created ? (
             <div className="signin-sent">
               <span className="sent-mark"><Icon name="check" size={16} strokeWidth={2.1} /></span>
-              <h2>Check your inbox.</h2>
+              <h2>Confirm your email.</h2>
               <p>
-                We sent a sign-in link to <b>{email}</b>. Open it on this or any other device and you will
-                come straight back here, signed in.
+                Your account for <b>{email}</b> is created. Supabase just sent a confirmation link —
+                click it once, then come back and sign in with your password. That's the only email step.
               </p>
-              <button type="button" className="link-btn" onClick={() => { setSent(false); setBusy(false); }}>
-                Use a different email
+              <button type="button" className="link-btn" onClick={() => { setCreated(false); setMode("in"); }}>
+                Back to sign in
               </button>
             </div>
           ) : (
-            <form onSubmit={submit}>
-              <label className="signin-label" htmlFor="email">Email</label>
-              <div className="signin-row">
+            <>
+              <div className="auth-tabs" role="tablist" aria-label="Sign in or create account">
+                <button type="button" role="tab" aria-selected={mode === "in"} className={"auth-tab" + (mode === "in" ? " active" : "")} onClick={() => { setMode("in"); setError(""); }}>
+                  Sign in
+                </button>
+                <button type="button" role="tab" aria-selected={mode === "up"} className={"auth-tab" + (mode === "up" ? " active" : "")} onClick={() => { setMode("up"); setError(""); }}>
+                  Create account
+                </button>
+              </div>
+              <form onSubmit={submit} noValidate>
+                <label className="signin-label" htmlFor="email">Email</label>
                 <input
                   id="email"
-                  className="input signin-input"
+                  className="input signin-field"
                   type="email"
                   required
                   autoFocus
+                  autoComplete="email"
                   placeholder="you@work.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={!session.enabled}
+                  disabled={!session.enabled || busy}
                 />
-                <button className="btn btn-primary" type="submit" disabled={busy || !session.enabled}>
-                  {busy ? "Sending…" : "Send magic link"}
+                <label className="signin-label" htmlFor="password">Password</label>
+                <div className="password-row">
+                  <input
+                    id="password"
+                    className="input signin-field"
+                    type={visible ? "text" : "password"}
+                    required
+                    minLength={8}
+                    autoComplete={mode === "in" ? "current-password" : "new-password"}
+                    placeholder={mode === "in" ? "Your password" : "At least 8 characters"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={!session.enabled || busy}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    aria-label={visible ? "Hide password" : "Show password"}
+                    onClick={() => setVisible((v) => !v)}
+                  >
+                    {visible ? <Icon name="close" size={14} /> : <Icon name="globe" size={14} />}
+                  </button>
+                </div>
+                {mode === "up" && (
+                  <>
+                    <label className="signin-label" htmlFor="confirm">Confirm password</label>
+                    <input
+                      id="confirm"
+                      className="input signin-field"
+                      type={visible ? "text" : "password"}
+                      required
+                      minLength={8}
+                      autoComplete="new-password"
+                      placeholder="Repeat it once"
+                      value={confirm}
+                      onChange={(e) => setConfirm(e.target.value)}
+                      disabled={!session.enabled || busy}
+                    />
+                  </>
+                )}
+                {error && <p className="brief-error" role="alert">{error}</p>}
+                <button className="btn btn-primary btn-lg btn-block auth-submit" type="submit" disabled={busy || !session.enabled}>
+                  {busy ? (mode === "in" ? "Signing in…" : "Creating account…") : mode === "in" ? "Sign in" : "Create the account"}
                 </button>
-              </div>
-              {error && <p className="brief-error" role="alert">{error}</p>}
-              <p className="signin-hint">No password, no signup form. The link is the account.</p>
-              <div className="signin-divider"><span>or</span></div>
-              <div className="signin-providers">
-                <button type="button" className="btn btn-ghost" onClick={() => provider("github")} disabled={!session.enabled}>
-                  <Icon name="globe" size={14} /> Continue with GitHub
-                </button>
-                <button type="button" className="btn btn-ghost" onClick={() => provider("google")} disabled={!session.enabled}>
-                  <Icon name="globe" size={14} /> Continue with Google
-                </button>
-              </div>
-            </form>
+                <p className="signin-hint">
+                  Passwords are hashed at the database. The app sees only the session, never the password.
+                </p>
+              </form>
+            </>
           )}
         </section>
 
         <p className="signin-foot">
-          Reviews, published listings and the stack library are tied to your account. Counters and the
-          public catalog stay anonymous.
+          The catalog, match room, compare arena, studio and all nine runners stay free and open — an
+          account exists only to carry your work across devices.
         </p>
       </div>
     </div>

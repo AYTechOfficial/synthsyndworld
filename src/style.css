@@ -2228,3 +2228,19 @@ a.tag:hover { color: var(--gold-bright); border-color: rgba(216, 185, 124, 0.35)
 @media (max-width: 1120px) and (min-width: 901px) {
   .btn-nav-publish { display: none !important; }
 }
+
+/* ── password auth ─────────────────────────────────────────────────────── */
+.auth-tabs { display: flex; gap: 4px; margin-bottom: 20px; border: 1px solid var(--line); border-radius: 999px; padding: 4px; width: fit-content; }
+.auth-tab { border: 0; background: none; padding: 8px 18px; border-radius: 999px; font-size: 12px; color: var(--muted); transition: all 0.2s var(--ease); }
+.auth-tab:hover { color: var(--text); }
+.auth-tab.active { background: linear-gradient(180deg, #f9edd3, #e6ca98 46%, #c9a76b); color: #16110a; font-weight: 600; }
+.signin-field { width: 100%; height: 48px; font-size: 14px; margin-bottom: 14px; }
+.password-row { position: relative; }
+.password-toggle {
+  position: absolute; right: 6px; top: 6px; width: 34px; height: 34px; border-radius: 8px;
+  background: none; border: 1px solid transparent; color: var(--faint);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.password-toggle:hover { color: var(--text); border-color: var(--line-strong); }
+.auth-submit { margin-top: 4px; }
+

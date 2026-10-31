@@ -4,7 +4,7 @@
 
 **Deliverable:** a complete, working marketplace plus a decision layer — catalog, publishing, reviews, counters, a deterministic match engine, a weighted compare arena, a stack studio, real accounts on Supabase, real Postgres with row-level security, documentation and recorded walkthroughs. Deployable on Vercel; [repository](https://github.com/AYTechOfficial/synthsyndworld) included.
 
-**Decision-layer walkthrough:** [walkthrough-v2.mp4](walkthrough-v2.mp4) (72s, silent, shot on the running build). **Marketplace walkthrough:** [walkthrough.mp4](walkthrough.mp4) (narrated).
+**Decision-layer walkthrough:** [walkthrough-v3.mp4](walkthrough-v3.mp4) (77s, silent, shot on the running build — match room, studio, compare arena, password sign-in, docs). **Narrated marketplace walkthrough:** [walkthrough.mp4](walkthrough.mp4).
 
 ## One sentence
 

@@ -7,7 +7,7 @@ import path from "node:path";
 
 const BASE = process.env.BASE_URL || "http://127.0.0.1:8787";
 const OUT_DIR = path.resolve("walkthrough-tmp");
-const FINAL = path.resolve("walkthrough-v2.webm");
+const FINAL = path.resolve("walkthrough-v3.webm");
 
 fs.rmSync(OUT_DIR, { recursive: true, force: true });
 fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -135,13 +135,24 @@ await wait(3000);
 await smoothScroll(760, 700);
 await wait(2600);
 
-console.log("6. Docs");
+console.log("6. Sign in (password)");
+await page.goto(BASE + "/signin", { waitUntil: "networkidle" });
+await wait(1600);
+await page.getByRole("tab", { name: "Create account" }).click();
+await wait(1400);
+await page.getByRole("tab", { name: "Sign in" }).click();
+await wait(900);
+await page.fill("#email", "reviewer@synthsynd.demo");
+await page.fill("#password", "the-good-parts");
+await wait(1600);
+
+console.log("7. Docs");
 await page.goto(BASE + "/docs#match", { waitUntil: "networkidle" });
 await wait(1600);
 await smoothScroll(1400, 800);
 await wait(2600);
 
-console.log("7. Closing frame");
+console.log("8. Closing frame");
 await page.goto(BASE + "/", { waitUntil: "networkidle" });
 await wait(2600);
 
