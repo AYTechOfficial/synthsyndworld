@@ -1,0 +1,34 @@
+{
+  "name": "synthsynd-world",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Synthsynd World \u2014 the AI agent marketplace with a deterministic match engine, weighted compare arena, stack studio and real accounts on Supabase.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 8787",
+    "build": "vite build",
+    "preview": "vite preview --port 8787 --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "smoke": "node scripts/smoke.mjs",
+    "shots": "node scripts/shots.mjs",
+    "seed": "node scripts/apply-schema.mjs"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@ffprobe-installer/ffprobe": "^2.1.2",
+    "@supabase/supabase-js": "^2.118.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "esbuild": "^0.24.0",
+    "pg": "^8.23.1",
+    "playwright": "^1.64.1",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11"
+  }
+}
